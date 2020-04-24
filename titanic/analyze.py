@@ -6,6 +6,7 @@ from sklearn.preprocessing import OneHotEncoder
 from sklearn.model_selection import cross_val_score
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.svm import SVC
 from sklearn.impute import KNNImputer
 
@@ -53,10 +54,16 @@ selector_logit = RFE(logit_model)
 selector_logit.fit(Xtrain, ytrain)
 selector_logit_scores = cross_val_score(selector_logit, Xtrain, ytrain_svc, cv=5)
 
+boosted_model = GradientBoostingClassifier()
+boosted_model.fit(Xtrain, ytrain)
+boosted_scores = cross_val_score(boosted_model, Xtrain, ytrain, cv=5)
+
 print("SVC CV scores:\n", svc_scores, np.mean(svc_scores))
 print("Logit CV scores:\n", logit_scores, np.mean(logit_scores))
 print("logit (feature-selected) CV scores:\n", selector_logit_scores,
         np.mean(selector_logit_scores))
+print("Gradient-Boosting Model CV scores:\n", boosted_scores,
+        np.mean(boosted_scores))
 
 (Xtest, _) = for_model_input(testset, test=True)
 Xtest = knn_imputer.fit_transform(Xtest)
@@ -69,6 +76,9 @@ predictions_logit = predictions_svc.astype('int64')
 
 predictions_logit_rfe = selector_logit.predict(Xtest) # + 1) / 2
 predictions_logit_rfe = predictions_logit_rfe.astype('int64')
+
+predictions_boosted = boosted_model.predict(Xtest) # + 1) / 2
+predictions_boosted = predictions_boosted.astype('int64')
 
 pred_svc_df = pandas.DataFrame(predictions_svc, columns=['Survived'])
 fin_ans_svc = pandas.DataFrame(testset['PassengerId']).join(pred_svc_df)
@@ -86,3 +96,10 @@ fin_ans_logit_rfe = pandas.DataFrame(testset['PassengerId']).join(
                         pred_logit_rfe_df)
 with open('predictions_logit_rfe.csv', 'w') as f:
     f.write((fin_ans_logit_rfe.to_csv(index=False)))
+
+pred_boosted_df = pandas.DataFrame(
+                        predictions_boosted, columns=['Survived'])
+fin_ans_boosted = pandas.DataFrame(testset['PassengerId']).join(
+                        pred_boosted_df)
+with open('predictions_boosted.csv', 'w') as f:
+    f.write((fin_ans_boosted.to_csv(index=False)))
