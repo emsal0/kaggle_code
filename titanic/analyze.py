@@ -43,20 +43,20 @@ knn_imputer = KNNImputer()
 Xtrain = knn_imputer.fit_transform(Xtrain)
 
 svc_model = SVC()
-svc_model.fit(Xtrain, ytrain_svc)
 svc_scores = cross_val_score(svc_model, Xtrain, ytrain_svc, cv=5)
+svc_model.fit(Xtrain, ytrain_svc)
 
 logit_model = LogisticRegressionCV(fit_intercept=True)
-logit_model.fit(Xtrain, ytrain)
 logit_scores = cross_val_score(logit_model, Xtrain, ytrain, cv=5)
+logit_model.fit(Xtrain, ytrain)
 
 selector_logit = RFE(logit_model)
-selector_logit.fit(Xtrain, ytrain)
 selector_logit_scores = cross_val_score(selector_logit, Xtrain, ytrain_svc, cv=5)
+selector_logit.fit(Xtrain, ytrain)
 
 boosted_model = GradientBoostingClassifier()
-boosted_model.fit(Xtrain, ytrain)
 boosted_scores = cross_val_score(boosted_model, Xtrain, ytrain, cv=5)
+boosted_model.fit(Xtrain, ytrain)
 
 print("SVC CV scores:\n", svc_scores, np.mean(svc_scores))
 print("Logit CV scores:\n", logit_scores, np.mean(logit_scores))
